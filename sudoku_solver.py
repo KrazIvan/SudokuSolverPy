@@ -45,7 +45,7 @@ class SudokuUI:
         self.master = master
         self.size = 5
         self.entries = []
-        self.drag_value = None
+        self.selected_value = None
 
         self.size_var = tk.IntVar(value=self.size)
         size_menu = tk.OptionMenu(master, self.size_var, *[i for i in range(3, 10)], command=self.change_size)
@@ -70,33 +70,35 @@ class SudokuUI:
         for widget in self.palette_frame.winfo_children():
             widget.destroy()
         for val in range(1, self.size + 1):
-            lbl = tk.Label(self.palette_frame, text=str(val), width=2, font=('Arial', 16), relief="raised")
-            lbl.pack(side="left", padx=2)
-            lbl.bind("<ButtonPress-1>", self.start_drag(val))
+            btn = tk.Button(self.palette_frame, text=str(val), width=2, font=('Arial', 16),
+                            command=lambda v=val: self.select_value(v))
+            btn.pack(side="left", padx=2)
+        blank_btn = tk.Button(self.palette_frame, text="✕", width=2, font=('Arial', 16),
+                              command=lambda: self.select_value(None))
+        blank_btn.pack(side="left", padx=2)
 
-    def start_drag(self, value):
-        def callback(event):
-            self.drag_value = value
-        return callback
+    def select_value(self, val: Optional[int]):
+        self.selected_value = val
 
     def build_grid(self):
         for widget in self.board_frame.winfo_children():
             widget.destroy()
 
-        self.entries = [[tk.Entry(self.board_frame, width=3, justify='center', font=('Arial', 18))
-                         for _ in range(self.size)] for _ in range(self.size)]
+        self.entries = []
         for r in range(self.size):
+            row_entries = []
             for c in range(self.size):
-                entry = self.entries[r][c]
+                entry = tk.Entry(self.board_frame, width=3, justify='center', font=('Arial', 18))
                 entry.grid(row=r, column=c, padx=2, pady=2)
-                entry.bind("<ButtonRelease-1>", self.drop_value(r, c))
+                entry.bind("<Button-1>", self.fill_cell(r, c))
+                row_entries.append(entry)
+            self.entries.append(row_entries)
 
-    def drop_value(self, row, col):
+    def fill_cell(self, row, col):
         def callback(event):
-            if self.drag_value is not None:
-                self.entries[row][col].delete(0, tk.END)
-                self.entries[row][col].insert(0, str(self.drag_value))
-                self.drag_value = None
+            self.entries[row][col].delete(0, tk.END)
+            if self.selected_value:
+                self.entries[row][col].insert(0, str(self.selected_value))
         return callback
 
     def change_size(self, val):
