@@ -1,17 +1,3 @@
-"""
-shape_sudoku_solver.py
-======================
-
-A minimal yet scalable solver for shape Sudoku (Latin-square-style) puzzles with a simple UI.
-Each row and column must contain exactly one of each symbol. No sub-grid constraints are assumed.
-
-This version uses a GUI built with tkinter where users can enter puzzle values manually.
-
-Usage:
-    Run the script and enter values (1‥N) in the grid. Leave empty cells blank or zero.
-    Click 'Solve' to fill in the solution.
-
-"""
 from __future__ import annotations
 
 from typing import List, Optional, Tuple, Sequence
@@ -65,7 +51,10 @@ class SudokuUI:
                 self.entries[r][c].grid(row=r, column=c, padx=2, pady=2)
 
         solve_btn = tk.Button(master, text="Solve", command=self.solve_puzzle)
-        solve_btn.grid(row=size, column=0, columnspan=size, pady=10)
+        solve_btn.grid(row=size, column=0, columnspan=size // 2, pady=10, sticky="ew")
+
+        reset_btn = tk.Button(master, text="Reset", command=self.reset_board)
+        reset_btn.grid(row=size, column=size // 2, columnspan=size - size // 2, pady=10, sticky="ew")
 
     def get_grid(self) -> Grid:
         grid = []
@@ -83,6 +72,11 @@ class SudokuUI:
                 self.entries[r][c].delete(0, tk.END)
                 if grid[r][c] != 0:
                     self.entries[r][c].insert(0, str(grid[r][c]))
+
+    def reset_board(self):
+        for row in self.entries:
+            for cell in row:
+                cell.delete(0, tk.END)
 
     def solve_puzzle(self):
         grid = self.get_grid()
