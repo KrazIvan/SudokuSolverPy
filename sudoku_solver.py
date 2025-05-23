@@ -45,10 +45,14 @@ class SudokuUI:
         self.master = master
         self.size = 5
         self.entries = []
+        self.drag_value = None
 
         self.size_var = tk.IntVar(value=self.size)
         size_menu = tk.OptionMenu(master, self.size_var, *[i for i in range(3, 10)], command=self.change_size)
         size_menu.grid(row=0, column=0, columnspan=2, pady=5, sticky="ew")
+
+        self.palette_frame = tk.Frame(master)
+        self.palette_frame.grid(row=0, column=2, columnspan=3, pady=5, sticky="ew")
 
         self.board_frame = tk.Frame(master)
         self.board_frame.grid(row=1, column=0, columnspan=5)
@@ -59,7 +63,21 @@ class SudokuUI:
         self.reset_btn = tk.Button(master, text="Reset", command=self.reset_board)
         self.reset_btn.grid(row=2, column=2, columnspan=2, pady=10, sticky="ew")
 
+        self.build_palette()
         self.build_grid()
+
+    def build_palette(self):
+        for widget in self.palette_frame.winfo_children():
+            widget.destroy()
+        for val in range(1, self.size + 1):
+            lbl = tk.Label(self.palette_frame, text=str(val), width=2, font=('Arial', 16), relief="raised")
+            lbl.pack(side="left", padx=2)
+            lbl.bind("<ButtonPress-1>", self.start_drag(val))
+
+    def start_drag(self, value):
+        def callback(event):
+            self.drag_value = value
+        return callback
 
     def build_grid(self):
         for widget in self.board_frame.winfo_children():
@@ -69,10 +87,21 @@ class SudokuUI:
                          for _ in range(self.size)] for _ in range(self.size)]
         for r in range(self.size):
             for c in range(self.size):
-                self.entries[r][c].grid(row=r, column=c, padx=2, pady=2)
+                entry = self.entries[r][c]
+                entry.grid(row=r, column=c, padx=2, pady=2)
+                entry.bind("<ButtonRelease-1>", self.drop_value(r, c))
+
+    def drop_value(self, row, col):
+        def callback(event):
+            if self.drag_value is not None:
+                self.entries[row][col].delete(0, tk.END)
+                self.entries[row][col].insert(0, str(self.drag_value))
+                self.drag_value = None
+        return callback
 
     def change_size(self, val):
         self.size = int(val)
+        self.build_palette()
         self.build_grid()
 
     def get_grid(self) -> Grid:
