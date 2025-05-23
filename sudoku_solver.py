@@ -41,20 +41,39 @@ def solve(grid: Grid) -> bool:
 
 
 class SudokuUI:
-    def __init__(self, master, size=5):
+    def __init__(self, master):
         self.master = master
-        self.size = size
-        self.entries = [[tk.Entry(master, width=3, justify='center', font=('Arial', 18))
-                         for _ in range(size)] for _ in range(size)]
-        for r in range(size):
-            for c in range(size):
+        self.size = 5
+        self.entries = []
+
+        self.size_var = tk.IntVar(value=self.size)
+        size_menu = tk.OptionMenu(master, self.size_var, *[i for i in range(3, 10)], command=self.change_size)
+        size_menu.grid(row=0, column=0, columnspan=2, pady=5, sticky="ew")
+
+        self.board_frame = tk.Frame(master)
+        self.board_frame.grid(row=1, column=0, columnspan=5)
+
+        self.solve_btn = tk.Button(master, text="Solve", command=self.solve_puzzle)
+        self.solve_btn.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
+
+        self.reset_btn = tk.Button(master, text="Reset", command=self.reset_board)
+        self.reset_btn.grid(row=2, column=2, columnspan=2, pady=10, sticky="ew")
+
+        self.build_grid()
+
+    def build_grid(self):
+        for widget in self.board_frame.winfo_children():
+            widget.destroy()
+
+        self.entries = [[tk.Entry(self.board_frame, width=3, justify='center', font=('Arial', 18))
+                         for _ in range(self.size)] for _ in range(self.size)]
+        for r in range(self.size):
+            for c in range(self.size):
                 self.entries[r][c].grid(row=r, column=c, padx=2, pady=2)
 
-        solve_btn = tk.Button(master, text="Solve", command=self.solve_puzzle)
-        solve_btn.grid(row=size, column=0, columnspan=size // 2, pady=10, sticky="ew")
-
-        reset_btn = tk.Button(master, text="Reset", command=self.reset_board)
-        reset_btn.grid(row=size, column=size // 2, columnspan=size - size // 2, pady=10, sticky="ew")
+    def change_size(self, val):
+        self.size = int(val)
+        self.build_grid()
 
     def get_grid(self) -> Grid:
         grid = []
@@ -89,5 +108,5 @@ class SudokuUI:
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Shape Sudoku Solver")
-    app = SudokuUI(root, size=5)  # Change size here for 4x4, 6x6, etc.
+    app = SudokuUI(root)
     root.mainloop()
